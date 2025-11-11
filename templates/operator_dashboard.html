@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operator Dashboard - ToolEase</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Leaflet CSS from CDN - Using jsDelivr as backup -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
+    
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='images/ToolEaseLogo.jpg') }}" alt="ToolEase" class="logo-image">
+                    <h2>ToolEase</h2>
+                </div>
+            </div>
+            
+            <style>
+            .logo-container {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .logo-image {
+                width: 40px;
+                height: 40px;
+                border-radius: 8px;
+                object-fit: contain;
+            }
+            </style>
+            
+            <div class="user-info">
+                <div class="user-avatar">{{ user.name[0].upper() }}</div>
+                <div class="user-details">
+                    <h3>{{ user.name }}</h3>
+                    <p>{{ user.role|capitalize }}</p>
+                    <div class="rating">⭐ {{ user.rating }}</div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#overview" class="nav-item active" onclick="showSection('overview')">
+                    <span>📊</span> Overview
+                </a>
+                <a href="#requests" class="nav-item" onclick="showSection('requests')">
+                    <span>📬</span> Requests
+                </a>
+                <a href="#assignments" class="nav-item" onclick="showSection('assignments')">
+                    <span>📋</span> My Assignments
+                </a>
+                <a href="#navigation" class="nav-item" onclick="showSection('navigation')">
+                    <span>🗺️</span> Navigation
+                </a>
+                <a href="#earnings" class="nav-item" onclick="showSection('earnings')">
+                    <span>💰</span> My Earnings
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/logout" class="btn-secondary btn-block">Logout</a>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar">
+                <h1>Operator Dashboard</h1>
+                <div class="notification-bell">
+                    <span>🔔</span>
+                    <span class="notification-badge" id="requestCount" style="display: none;">0</span>
+                </div>
+            </div>
+            
+            <!-- Overview Section -->
+            <section id="overview" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">📦</div>
+                        <div class="stat-info">
+                            <h3>{{ stats.total_assignments }}</h3>
+                            <p>Total Assignments</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-info">
+                            <h3>{{ stats.completed }}</h3>
+                            <p>Completed</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon orange">⏳</div>
+                        <div class="stat-info">
+                            <h3>{{ stats.pending }}</h3>
+                            <p>Pending</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon purple">💰</div>
+                        <div class="stat-info">
+                            <h3>₹{{ "%.2f"|format(stats.earnings) }}</h3>
+                            <p>Total Earnings</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-row">
+                    <div class="chart-card">
+                        <h3>Today's Schedule</h3>
+                        <div id="todaySchedule" class="schedule-list"></div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3>Quick Actions</h3>
+                        <div class="quick-actions">
+                            <button class="btn-primary" onclick="showSection('requests')">
+                                📬 View Requests
+                            </button>
+                            <button class="btn-secondary" onclick="showSection('assignments')">
+                                📋 My Assignments
+                            </button>
+                            <button class="btn-secondary" onclick="showSection('navigation')">
+                                🗺️ Navigate
+                            </button>
+                            <button class="btn-secondary" onclick="showSection('earnings')">
+                                💰 View Earnings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Requests Section -->
+            <section id="requests" class="content-section">
+                <div class="section-header">
+                    <h2>Operator Requests</h2>
+                    <p>Accept or reject rental requests</p>
+                </div>
+                
+                <div id="requestsList" class="requests-grid"></div>
+            </section>
+            
+            <!-- Assignments Section -->
+            <section id="assignments" class="content-section">
+                <div class="section-header">
+                    <h2>My Assignments</h2>
+                    <p>View your scheduled tool operations</p>
+                </div>
+                
+                <div class="filter-bar">
+                    <select id="assignmentStatusFilter" onchange="filterAssignments()">
+                        <option value="all">All Assignments</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="ON_TIME">Completed On Time</option>
+                        <option value="LATE">Late</option>
+                        <option value="NO_SHOW">No Show</option>
+                    </select>
+                </div>
+                
+                <div id="assignmentsList" class="assignments-list"></div>
+            </section>
+            
+            <!-- Navigation Section -->
+            <section id="navigation" class="content-section">
+                <div class="section-header">
+                    <h2>Navigation</h2>
+                    <p>Get directions to your assignment locations</p>
+                </div>
+                
+                <!-- MAP CONTAINER -->
+                <div id="navigationMap" class="map-container" style="width: 100%; height: 500px; border-radius: 10px; overflow: hidden; background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                    <div class="map-placeholder">
+                        <span>🗺️</span>
+                        <p>Select an assignment to view route</p>
+                    </div>
+                </div>
+                
+                <div id="navigationDetails" class="navigation-details"></div>
+            </section>
+            
+            <!-- Earnings Section -->
+            <section id="earnings" class="content-section">
+                <div class="section-header">
+                    <h2>My Earnings</h2>
+                    <p>Track your revenue from operations</p>
+                </div>
+                
+                <div class="earnings-summary">
+                    <div class="earning-stat">
+                        <h3 id="totalEarnings">₹0.00</h3>
+                        <p>Total Earnings</p>
+                    </div>
+                    <div class="earning-stat">
+                        <h3 id="monthEarnings">₹0.00</h3>
+                        <p>This Month</p>
+                    </div>
+                    <div class="earning-stat">
+                        <h3 id="weekEarnings">₹0.00</h3>
+                        <p>This Week</p>
+                    </div>
+                </div>
+                
+                <div id="earningsList" class="table-container"></div>
+            </section>
+        </div>
+    </div>
+    
+    <!-- Load Leaflet JS from jsDelivr CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+    
+    <!-- Load operator.js AFTER Leaflet -->
+    <script src="{{ url_for('static', filename='js/operator.js') }}"></script>
+    
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✓ Operator dashboard loaded');
+            
+            // Check if Leaflet loaded
+            if (typeof L !== 'undefined') {
+                console.log('✓ Leaflet library loaded successfully');
+            } else {
+                console.error('❌ Leaflet library failed to load');
+            }
+            
+            loadRequests();
+            loadAssignments();
+            loadEarnings();
+            
+            // Refresh data every 30 seconds
+            setInterval(() => {
+                loadRequests();
+                loadAssignments();
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

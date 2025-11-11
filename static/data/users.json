@@ -1,0 +1,54 @@
+{
+  "velthapuprathap@gmail.com": {
+    "id": "O362575",
+    "name": "Prathap",
+    "email": "velthapuprathap@gmail.com",
+    "phone": "9963340135",
+    "role": "owner",
+    "password_hash": "scrypt:32768:8:1$WQxyWaFjuQu5nwvC$4a462f702f316359474fa01732a1a30d4a5632d5fbfbc412c190cfedcfc37aa32ef19617aceb07763613d6bfe80a6f7a3053c497de149e977b259b56be1cee49",
+    "business_type": "construction",
+    "address": "Jendavenkatapur",
+    "rating": 4.5,
+    "created_at": "2025-11-05T22:39:35.708643",
+    "verified": true
+  },
+  "sunnyvarma.x03@gmail.com": {
+    "id": "R362866",
+    "name": "Agnick",
+    "email": "sunnyvarma.x03@gmail.com",
+    "phone": "9963340135",
+    "role": "renter",
+    "password_hash": "scrypt:32768:8:1$9oVubdfnqjrQTnzv$9517820bafa233438351bc2565f3c900e8d045e2faed7722fa6641f44f2e15086f9a2f03ecd2dd1404ebb4abdce1424f9f4b6d568acfaccdb3f16f2acd438954",
+    "business_type": "construction",
+    "address": "Jendavenkatapur",
+    "rating": 4.5,
+    "created_at": "2025-11-05T22:44:26.403921",
+    "verified": true
+  },
+  "dev@gmail.com": {
+    "id": "O366470",
+    "name": "Dev",
+    "email": "dev@gmail.com",
+    "phone": "9963340135",
+    "role": "operator",
+    "password_hash": "scrypt:32768:8:1$n2oKvohsbxkgS03N$38f905f0091176149f654535492aecd15694cfc70d0ad83c0e5c24faeb2c966021c7ea566747543f107ae39d16f3e04bfdd54bf6a893a63c8166329330b22225",
+    "business_type": "construction",
+    "address": "Jendavenkatapur",
+    "rating": 4.5,
+    "created_at": "2025-11-05T23:44:30.575467",
+    "verified": true
+  },
+  "manoj@gmail.com": {
+    "id": "O372610",
+    "name": "Manoj",
+    "email": "manoj@gmail.com",
+    "phone": "9963340135",
+    "role": "operator",
+    "password_hash": "scrypt:32768:8:1$ntKRVrP8ZOgPgmbK$f2c5cab754da650a17033b74eda80c17b760d3b7d704713bf140fd8caeb35c8b81ffa9182bcefbc5326634986dce08330242f206c1fedbb9ac9196fa1514388d",
+    "business_type": "construction",
+    "address": "Jendavenkatapur",
+    "rating": 4.5,
+    "created_at": "2025-11-06T01:26:50.361843",
+    "verified": true
+  }
+}

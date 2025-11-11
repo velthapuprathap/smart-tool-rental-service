@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renter Dashboard - ToolEase</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='images/ToolEaseLogo.jpg') }}" alt="ToolEase" class="logo-image">
+                    <h2>ToolEase</h2>
+                </div>
+            </div>
+            
+            <style>
+            .logo-container {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .logo-image {
+                width: 40px;
+                height: 40px;
+                border-radius: 8px;
+                object-fit: contain;
+            }
+            </style>
+            
+            <div class="user-info">
+                <div class="user-avatar">{{ user.name[0].upper() }}</div>
+                <div class="user-details">
+                    <h3>{{ user.name }}</h3>
+                    <p>{{ user.role|capitalize }}</p>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#overview" class="nav-item active" onclick="showSection('overview')">
+                    <span>📊</span> <span>Overview</span>
+                </a>
+                <a href="#browse-tools" class="nav-item" onclick="showSection('browse-tools')">
+                    <span>🔍</span> <span>Browse Tools</span>
+                </a>
+                <a href="#my-bookings" class="nav-item" onclick="showSection('my-bookings')">
+                    <span>📋</span> <span>My Bookings</span>
+                </a>
+                <a href="#operator-tracking" class="nav-item" onclick="showSection('operator-tracking')">
+                    <span>📍</span> <span>Operator Tracking</span>
+                </a>
+                <a href="#feedback-section" class="nav-item" onclick="showSection('feedback-section')">
+                    <span>📝</span> <span>Feedback</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/logout" class="btn-secondary btn-block">Logout</a>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar">
+                <h1>Renter Dashboard</h1>
+                <div class="search-bar">
+                    <input type="text" id="searchTools" placeholder="Search tools..." onkeyup="filterTools()">
+                </div>
+            </div>
+            
+            <!-- Overview Section -->
+            <section id="overview" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">📦</div>
+                        <div class="stat-info">
+                            <h3>{{ stats.active_bookings }}</h3>
+                            <p>Active Bookings</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-info">
+                            <h3>{{ stats.completed_bookings }}</h3>
+                            <p>Completed</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon orange">💰</div>
+                        <div class="stat-info">
+                            <h3>₹{{ "%.2f"|format(stats.total_spent) }}</h3>
+                            <p>Total Spent</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon purple">⭐</div>
+                        <div class="stat-info">
+                            <h3>4.5</h3>
+                            <p>Your Rating</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-row">
+                    <div class="chart-card">
+                        <h3>Quick Actions</h3>
+                        <div class="quick-actions">
+                            <button class="btn-primary" onclick="showSection('browse-tools')">
+                                🔍 Browse Tools
+                            </button>
+                            <button class="btn-secondary" onclick="showSection('my-bookings')">
+                                📋 View Bookings
+                            </button>
+                            <button class="btn-secondary" onclick="showSection('operator-tracking')">
+                                📍 Track Operator
+                            </button>
+                            <button class="btn-secondary" onclick="showSection('feedback-section')">
+                                📝 Give Feedback
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3>Recent Bookings</h3>
+                        <div id="recentBookings" class="activity-list"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Browse Tools Section -->
+            <section id="browse-tools" class="content-section">
+                <div class="section-header">
+                    <h2>Available Tools Nearby</h2>
+                    <p>Find and book tools based on distance and ratings</p>
+                </div>
+                
+                <div class="filter-bar">
+                    <select id="availabilityFilter" onchange="applyFilters()">
+                        <option value="all">All Status</option>
+                        <option value="AVAILABLE">Available</option>
+                        <option value="BOOKED">Booked</option>
+                        <option value="MAINTENANCE">Under Maintenance</option>
+                    </select>
+                    
+                    <select id="distanceFilter" onchange="applyFilters()">
+                        <option value="all">All Distances</option>
+                        <option value="5">Within 5 km</option>
+                        <option value="10">Within 10 km</option>
+                        <option value="20">Within 20 km</option>
+                    </select>
+                    
+                    <select id="ratingFilter" onchange="applyFilters()">
+                        <option value="all">All Ratings</option>
+                        <option value="4">4+ Stars</option>
+                        <option value="3">3+ Stars</option>
+                    </select>
+                </div>
+                
+                <div id="toolsGrid" class="tools-browse-grid">
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                        <div class="spinner"></div>
+                        <p>Loading tools...</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- My Bookings Section -->
+            <section id="my-bookings" class="content-section">
+                <div class="section-header">
+                    <h2>My Bookings</h2>
+                    <p>View and manage your tool rentals</p>
+                </div>
+                
+                <div class="filter-bar">
+                    <select id="bookingStatusFilter" onchange="filterBookings()">
+                        <option value="all">All Bookings</option>
+                        <option value="SUCCESS">Successful</option>
+                        <option value="FAILED_USER">Failed</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+                
+                <div id="bookingsList" class="bookings-list">
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <div class="spinner"></div>
+                        <p>Loading bookings...</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Operator Tracking Section -->
+            <section id="operator-tracking" class="content-section">
+                <div class="section-header">
+                    <h2>Operator Tracking</h2>
+                    <p>Track operator assignments and arrivals</p>
+                </div>
+                
+                <div id="operatorTrackingList" class="tracking-grid">
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <div class="spinner"></div>
+                        <p>Loading tracking info...</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Feedback Section -->
+            <section id="feedback-section" class="content-section">
+                <div class="section-header">
+                    <h2>📝 My Feedback</h2>
+                    <p>Share your experience with tools you've rented</p>
+                </div>
+
+                <!-- Pending Feedback -->
+                <div class="feedback-pending-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; margin-bottom: 30px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 20px;">⏳ Pending Feedback</h3>
+                    <p style="margin: 0 0 20px 0; opacity: 0.9;">You have <strong id="pendingFeedbackCount">0</strong> tool(s) waiting for your review</p>
+                    <div id="pendingFeedbackList"></div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <select id="feedbackFilter" onchange="filterFeedback()">
+                        <option value="all">All Feedback</option>
+                        <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                        <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                        <option value="3">⭐⭐⭐ 3 Stars</option>
+                        <option value="2">⭐⭐ 2 Stars</option>
+                        <option value="1">⭐ 1 Star</option>
+                    </select>
+                </div>
+
+                <!-- Submitted Feedback -->
+                <div class="feedback-list" id="feedbackList"></div>
+            </section>
+        </div>
+    </div>
+    
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close-btn" onclick="closeBookingModal()">&times;</span>
+            
+            <h2>Book Tool</h2>
+            <div id="bookingToolDetails" class="tool-details-modal"></div>
+            
+            <form id="bookingForm" onsubmit="handleBooking(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date & Time *</label>
+                        <input type="datetime-local" name="start_date" required onchange="calculatePrice()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>End Date & Time *</label>
+                        <input type="datetime-local" name="end_date" required onchange="calculatePrice()">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Rental Duration</label>
+                    <select name="duration_type" id="durationType" onchange="calculatePrice()">
+                        <option value="hourly">Hourly</option>
+                        <option value="daily">Daily</option>
+                    </select>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" name="operator_needed" id="operatorNeeded" onchange="calculatePrice()">
+                        I need an operator (₹500/day)
+                    </label>
+                </div>
+                
+                <div class="price-summary">
+                    <div class="price-row">
+                        <span>Tool Rental</span>
+                        <span id="toolPrice">₹0</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Operator Fee</span>
+                        <span id="operatorPrice">₹0</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total Amount</span>
+                        <span id="totalPrice">₹0</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-large">Proceed to Payment</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="close-btn" onclick="closeFeedbackModal()">✕</button>
+            
+            <h2 style="text-align: center; margin-bottom: 10px;">📝 Rate Your Experience</h2>
+            <p class="subtitle" style="text-align: center;" id="feedbackToolName"></p>
+            
+            <form id="feedbackForm" onsubmit="submitFeedback(event)">
+                <!-- Tool Details Display -->
+                <div id="feedbackToolDetails" style="background: var(--bg-secondary); padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+                </div>
+
+                <!-- Star Rating -->
+                <div class="form-group">
+                    <label style="font-size: 18px; font-weight: 600;">How would you rate this tool?</label>
+                    <div class="star-rating" id="starRating">
+                        <span class="star" data-rating="1">☆</span>
+                        <span class="star" data-rating="2">☆</span>
+                        <span class="star" data-rating="3">☆</span>
+                        <span class="star" data-rating="4">☆</span>
+                        <span class="star" data-rating="5">☆</span>
+                    </div>
+                    <input type="hidden" name="rating" id="ratingValue" required>
+                    <p id="ratingText" style="margin-top: 10px; color: var(--primary-color); font-weight: 600;"></p>
+                </div>
+
+                <!-- Feedback Categories (Quick Select) -->
+                <div class="form-group">
+                    <label>Quick Feedback (Optional)</label>
+                    <div class="feedback-tags">
+                        <button type="button" class="feedback-tag" onclick="toggleFeedbackTag(this)">👍 Excellent Condition</button>
+                        <button type="button" class="feedback-tag" onclick="toggleFeedbackTag(this)">⚡ Great Performance</button>
+                        <button type="button" class="feedback-tag" onclick="toggleFeedbackTag(this)">✅ Easy to Use</button>
+                        <button type="button" class="feedback-tag" onclick="toggleFeedbackTag(this)">🚚 On-Time Delivery</button>
+                        <button type="button" class="feedback-tag" onclick="toggleFeedbackTag(this)">⚠️ Minor Issues</button>
+                        <button type="button" class="feedback-tag" onclick="toggleFeedbackTag(this)">🐌 Late Delivery</button>
+                        <button type="button" class="feedback-tag" onclick="toggleFeedbackTag(this)">🔧 Needs Maintenance</button>
+                    </div>
+                </div>
+
+                <!-- Detailed Feedback -->
+                <div class="form-group">
+                    <label>Your Detailed Review</label>
+                    <textarea name="feedback" rows="5" placeholder="Share your experience... What did you like? Any suggestions?" required></textarea>
+                </div>
+
+                <!-- Damage Report -->
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="damage_flag" id="damageFlag">
+                            ⚠️ Report damage or issues with this tool
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-primary btn-block" style="padding: 15px; font-size: 16px;">
+                    🚀 Submit Feedback
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/renter.js') }}"></script>
+    <script>
+        // Initialize dashboard with debug logging
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== RENTER DASHBOARD INITIALIZED ===');
+            console.log('Dashboard loaded, initializing...');
+            
+            // Load initial data
+            loadNearbyTools();
+            loadMyBookings();
+            loadOperatorTracking();
+            loadFeedback();
+            
+            console.log('Initial data load triggered');
+        });
+    </script>
+</body>
+</html>
